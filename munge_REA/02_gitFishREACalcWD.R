@@ -20,7 +20,7 @@ UNIQUE_REP<-c(UNIQUE_SURVEY, "REP")
 UNIQUE_COUNT<-c(UNIQUE_REP, "REPLICATEID")
 
 #get base survey info, calculate average depth+complexity+so on
-SURVEY_INFO<-c("OBS_YEAR", "REGION", "REGION_NAME", "ISLAND", "ANALYSIS_SEC", "ANALYSIS_SCHEME", "ANALYSIS_YEAR", "SEC_NAME", "SITE", "DATE_", "REEF_ZONE", "DEPTH_BIN", "LATITUDE", "LONGITUDE", "SITEVISITID", "METHOD")
+SURVEY_INFO<-c("OBS_YEAR", "REGION", "REGION_NAME", "ISLAND", "ANALYSIS_SCHEME", "ANALYSIS_YEAR", "SEC_NAME", "SITE", "DATE_", "REEF_ZONE", "DEPTH_BIN", "LATITUDE", "LONGITUDE", "SITEVISITID", "METHOD")
 survey_table<-Aggregate_InputTable(wd, SURVEY_INFO)
 
 OTHER_BENTHIC<-c("CLAM", "CORALLIMORPH", "ZOANTHID", "TUNICATE", "SPONGE", "TA", "CYANO", "OTHER", "SOFT_CORAL")
@@ -53,7 +53,7 @@ data.cols<-c(trophic.cols, "TotFish", SURVEY_SITE_DATA)
 #wsd<-merge(wsd, r4b, by=UNIQUE_SURVEY)
 #data.cols<-c(data.cols, "0_20", "20_50", "50_plus")
 #names(wsd)[match(c("(0,20]", "(20,50]","(50,Inf]" ),names(wsd))] <- c("0_20", "20_50", "50_plus")
-#wsd$BSR<-(wsd$HARD_CORAL+wsd$CCA)/(wsd$MA + wsd$TA)
+#wsd$BSR<-(wsd$HARD_CORAL+wsd$CCA)/(100-wsd$HARD_CORAL+wsd$CCA)  #we dont have TA anymore!
 #data.cols<-c(data.cols, "BSR")
 
 

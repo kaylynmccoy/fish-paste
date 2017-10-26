@@ -49,15 +49,29 @@ wsd[wsd$REGION %in% c("MHI", "NWHI") & wsd$OBS_YEAR %in% seq(2013,2015),]$ANALYS
 ## generate a complete list of all ANALYSIS STRATA and their size
 SCHEMES<-c("RAMP_BASIC", "MARI2011", "MARI2014", "TUT10_12", "AS_SANCTUARY")
 for(i in 1:length(SCHEMES)){
+	tmp2<-sectors[,c("SEC_NAME", SCHEMES[i])]
+	tmp2$SCHEME<-SCHEMES[i]
+	names(tmp2)<- c("SEC_NAME", "ANALYSIS_SEC", "ANALYSIS_SCHEME")
+	
 	tmp<-aggregate(sectors$AREA_HA, sectors[,c(SCHEMES[i], "STRATA")], sum)
 	tmp$SCHEME<-SCHEMES[i]
 	names(tmp)<-c("ANALYSIS_SEC", "STRATA", "AREA_HA", "ANALYSIS_SCHEME")
 	if(i==1){
 		st<-tmp
+		as<-tmp2
 	} else {
 		st<-rbind(st, tmp)
+		as<-rbind(as, tmp2)
 	}	
 }
+
+as$TMP<-1
+as<-aggregate(as$TMP, by=as[,c("SEC_NAME", "ANALYSIS_SCHEME", "ANALYSIS_SEC")], length) 
+as$x<-NULL
+
+wsd<-merge(wsd, as, by=c("SEC_NAME", "ANALYSIS_SCHEME"), all.x=T)  # add ANALYSISS_SCHEME for tthis sector and sceheme combination
+unique(wsd[is.na(wsd$ANALYSIS_SCHEME), c("ISLAND", "ANALYSIS_SEC", "SEC_NAME", "OBS_YEAR", "ANALYSIS_YEAR", "ANALYSIS_SCHEME", "STRATA")])
+
 cast(st, ANALYSIS_SEC ~ ANALYSIS_SCHEME, value="AREA_HA", sum)
 wsd<-merge(wsd, st, by=c("ANALYSIS_SCHEME", "ANALYSIS_SEC", "STRATA"), all.x=T)
 #check if some are missing an AREA_HA .. which means that they didnt get into the stratification scheme properly
@@ -99,22 +113,22 @@ dp<-Calc_Pooled_Simple(dps$Mean, dps$SampleVar, data.cols, OUTPUT_LEVEL, "AREA_H
 save(dp, file="data_pooled_is_yr_RZ.Rdata")
 
 # e.g. SAVE BY ISLAND PER YEAR
-AGGREGATION_LEVEL<-c("REGION","ISLAND", "ANALYSIS_YEAR")
+OUTPUT_LEVEL<-c("REGION","ISLAND", "ANALYSIS_YEAR", "METHOD")
 dp<-Calc_Pooled_Simple(dps$Mean, dps$SampleVar, data.cols, OUTPUT_LEVEL, "AREA_HA")
 save(dp, file="data_pooled_is_yr.Rdata")
 
 # e.g. SAVE BY ISLAND POOLING ALL YEARS' DATA
-AGGREGATION_LEVEL<-c("REGION","ISLAND")
+OUTPUT_LEVEL<-c("REGION","ISLAND", "METHOD")
 dp<-Calc_Pooled_Simple(dps$Mean, dps$SampleVar, data.cols, OUTPUT_LEVEL, "AREA_HA")
 save(dp, file="data_pooled_is.Rdata")
 
 # e.g. SAVE BY ISLAND AND SECTOR PER YEAR
-AGGREGATION_LEVEL<-c("REGION","ISLAND", "ANALYSIS_SEC", "ANALYSIS_YEAR")
+OUTPUT_LEVEL<-c("REGION","ISLAND", "ANALYSIS_SEC", "ANALYSIS_YEAR", "METHOD")
 dp<-Calc_Pooled_Simple(dps$Mean, dps$SampleVar, data.cols, OUTPUT_LEVEL, "AREA_HA")
 save(dp, file="data_pooled_SEC_yr.Rdata")
 
 # e.g. SAVE BY REGION PER YEAR
-OUTPUT_LEVEL<-c("REGION", "ANALYSIS_YEAR") 
+OUTPUT_LEVEL<-c("REGION", "ANALYSIS_YEAR", "METHOD") 
 dp<-Calc_Pooled_Simple(dps$Mean, dps$SampleVar, data.cols, OUTPUT_LEVEL, "AREA_HA")
 save(dp, file="MONREPdata_pooled_reg.rdata")
 

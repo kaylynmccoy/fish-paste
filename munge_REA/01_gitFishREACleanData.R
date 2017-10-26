@@ -27,13 +27,10 @@ DATA_COLS<-c("SITEVISITID", "METHOD", "DATE_", "OBS_YEAR",  "SITE", "REEF_ZONE",
 head(x[,DATA_COLS])
 x<-x[,DATA_COLS]
 
-#generate a simple "Strata" field, by concatenating Stratum and Depth fields
-x$STRATA<-paste(x$REEF_ZONE, x$DEPTH_BIN, sep='')
-
 ## Update SITE to have three numeric digits (eg OAH-01 becomes OAH-001)
 x$SITE<-SiteNumLeadingZeros(x$SITE)
 
-x[is.na(x$TRAINING_YN),]$TRAINING_YN<-FALSE   # Training falg of NA is equivalent to a FALSE .. as none of the odler data was 'training data'
+x[is.na(x$TRAINING_YN),]$TRAINING_YN<-FALSE   # Training flag of NA is equivalent to a FALSE .. as none of the older data was 'training data'
 x<-subset(x, x$TRAINING_YN==FALSE)
 x<-subset(x, x$EXCLUDE_FLAG==0, drop=TRUE)
 x<-subset(x, x$METHOD %in% c("nSPC", "nSPC-CCR"), drop=TRUE)
@@ -41,18 +38,12 @@ x<-subset(x, x$METHOD %in% c("nSPC", "nSPC-CCR"), drop=TRUE)
 x<-subset(x, x$OBS_TYPE %in% c("U","I","N", "F", "T", "P"))  # note this includes all the data .. wlll need to add filtering to the scripts that analyse the data
 
 #add SITE MASTER information to x  #IDW - note that if we join on SITE then SITE MASTER would also join to all surveys at a site .. for nSPC there are no duplicates, but some of those sites were oldeer BLT sites that were also survyed in earlier years.
-# this would be better if SECTOR field in database was up to date properly .. rather than merge with the site_Sectors spreadsheet
-x<-merge(x, site_master[,c("SITE", "SEC_NAME", "ANALYSIS_SEC", "ANALYSIS_YEAR", "ANALYSIS_SCHEME")], by="SITE", all.x=TRUE)
+#x<-merge(x, site_master[,c("SITE", "SEC_NAME", "ANALYSIS_SEC", "ANALYSIS_YEAR", "ANALYSIS_SCHEME")], by="SITE", all.x=TRUE)
+x<-merge(x, site_master[,c("SITE", "SEC_NAME", "ANALYSIS_YEAR", "ANALYSIS_SCHEME")], by="SITE", all.x=TRUE)  #..  should actually pick up ANALYSIS_SEC from the sectors file.
 
-#CHECK THAT all ANALYSIS_SEC are present in the site_master file)
-idw<-x[is.na(x$ANALYSIS_SEC)  & x$METHOD=="nSPC", c("REGION", "SITE","OBS_YEAR", "METHOD"),]
-if(dim(idw)[1]>0) {cat("nSPC sites with MISSING ANALYSIS_SEC")}   # should be 0
-
-#for ones that are missing, set it to ISLAND
-no_secs<-is.na(x$ANALYSIS_SEC)
-tmp<-as.character(x$ANALYSIS_SEC)
-tmp[no_secs]<-as.character(x[no_secs,]$ISLAND)
-x$ANALYSIS_SEC<-tmp
+#CHECK THAT all ANALYSIS_SCHEMES are present in the site_master file)
+idw<-x[is.na(x$ANALYSIS_SCHEME)  & x$METHOD=="nSPC", c("REGION", "SITE","OBS_YEAR", "METHOD"),]
+if(dim(idw)[1]>0) {cat("nSPC sites with MISSING ANALYSIS_SCHEME")}   # should be 0
 
 ############################################################################################
 ###### new section .. where there is substrate_height data, work out average height && ave_height_variability so that we get standardized complexity metrics (mean hieght, mean height variability, max-height) 
